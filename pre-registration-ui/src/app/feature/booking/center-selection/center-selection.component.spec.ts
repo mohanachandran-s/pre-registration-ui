@@ -180,4 +180,48 @@ describe('CenterSelectionComponent', () => {
     fixture.detectChanges();
     expect(component.enableNextButton).toBeTruthy();
   });
+
+  describe('getRecommendedCenterLocationField', () => {
+    const addressFields = [
+      { id: 'permanentCity', inputRequired: true, controlType: 'dropdown', locationHierarchyLevel: 3 },
+      { id: 'presentZipcode', inputRequired: true, controlType: 'dropdown', locationHierarchyLevel: 5 },
+      { id: 'proofOfAddress', inputRequired: true, controlType: 'fileupload', locationHierarchyLevel: 5 },
+      { id: 'permanentZipcode', inputRequired: true, controlType: 'dropdown', locationHierarchyLevel: 5 }
+    ];
+    let savedConfig: string;
+
+    beforeEach(() => {
+      savedConfig = localStorage.getItem('config');
+      component.identityData = addressFields;
+      component.recommendedCenterLocCode = 5;
+    });
+
+    afterEach(() => {
+      if (savedConfig === null) {
+        localStorage.removeItem('config');
+      } else {
+        localStorage.setItem('config', savedConfig);
+      }
+    });
+
+    it('should use the configured address field', () => {
+      localStorage.setItem('config', JSON.stringify({ 'preregistration.recommended.centers.locationField': 'presentZipcode' }));
+      expect(component.getRecommendedCenterLocationField()).toBe('presentZipcode');
+    });
+
+    it('should use the last address field when not configured', () => {
+      localStorage.setItem('config', JSON.stringify({ 'preregistration.recommended.centers.locationField': '' }));
+      expect(component.getRecommendedCenterLocationField()).toBe('permanentZipcode');
+    });
+
+    it('should ignore a configured field that is not at the recommended hierarchy level', () => {
+      localStorage.setItem('config', JSON.stringify({ 'preregistration.recommended.centers.locationField': 'permanentCity' }));
+      expect(component.getRecommendedCenterLocationField()).toBe('permanentZipcode');
+    });
+
+    it('should return null when there is no address field at the recommended hierarchy level', () => {
+      component.recommendedCenterLocCode = 4;
+      expect(component.getRecommendedCenterLocationField()).toBeNull();
+    });
+  });
 });

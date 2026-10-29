@@ -109,6 +109,7 @@ export const CONFIG_KEYS = {
   mosip_kernel_otp_expiry_time: 'mosip.kernel.otp.expiry-time',
   mosip_kernel_otp_default_length: 'mosip.kernel.otp.default-length',
   preregistration_recommended_centers_locCode: 'preregistration.recommended.centers.locCode',
+  preregistration_recommended_centers_locationField: 'preregistration.recommended.centers.locationField',
   preregistration_availability_noOfDays: 'preregistration.availability.noOfDays',
   mosip_regex_referenceIdentityNumber: 'mosip.id.validation.identity.referenceIdentityNumber',
   mosip_regex_postalCode: 'mosip.id.validation.identity.postalCode',

@@ -200,18 +200,7 @@ export class CenterSelectionComponent
   async getRecommendedCenters() {
     this.totalItems = 0;
     this.nearbyClicked = false;
-    let uiFieldName = null;
-    this.identityData.forEach((obj) => {
-      if (
-        obj.inputRequired === true &&
-        obj.controlType !== null &&
-        (obj.controlType !== "fileupload")
-      ) {
-        if (obj.locationHierarchyLevel && this.recommendedCenterLocCode == obj.locationHierarchyLevel) {
-          uiFieldName = obj.id;
-        }
-      }
-    });
+    const uiFieldName = this.getRecommendedCenterLocationField();
     if (!uiFieldName) {
       this.showErrorMessage(null, this.errorlabels.error);
     } else {
@@ -240,6 +229,45 @@ export class CenterSelectionComponent
       await this.getLocationNamesByCodes();
       this.getRecommendedCentersApiCall();
     }
+  }
+
+  /**
+   * @description Returns the UI spec field id whose value is used to load recommended centers.
+   * When the UI spec has more than one address (ex: permanent and present), the config
+   * "preregistration.recommended.centers.locationField" picks the address to use (ex: presentZipcode),
+   * so the result does not depend on the order of the address fields in the UI spec.
+   * If the config is not set or does not match a location field at the recommended hierarchy level,
+   * the last matching field is used, as before.
+   */
+  getRecommendedCenterLocationField() {
+    const locationFields = this.identityData.filter(
+      (obj) =>
+        obj.inputRequired === true &&
+        obj.controlType !== null &&
+        obj.controlType !== "fileupload" &&
+        obj.locationHierarchyLevel &&
+        this.recommendedCenterLocCode == obj.locationHierarchyLevel
+    );
+    if (locationFields.length == 0) {
+      return null;
+    }
+    const configuredField = this.configService.getConfigByKey(
+      appConstants.CONFIG_KEYS.preregistration_recommended_centers_locationField
+    );
+    if (configuredField) {
+      const field = locationFields.find(
+        (obj) => obj.id === String(configuredField).trim()
+      );
+      if (field) {
+        return field.id;
+      }
+      console.error(
+        "Invalid recommended centers locationField config value: %s, it is not a location field at hierarchy level %s",
+        configuredField,
+        this.recommendedCenterLocCode
+      );
+    }
+    return locationFields[locationFields.length - 1].id;
   }
 
   getLocationNamesByCodes() {
